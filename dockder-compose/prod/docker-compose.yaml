@@ -1,5 +1,20 @@
 version: "3.8"
 services:
+  rabbit:
+    image: rabbitmq:3.12-management
+    hostname: rabbitmq
+    container_name: rabbitmq-ms
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - wiremoney
+
+
   eurekaserver:
     image: jpelegrino/eurekaserver:1.0
     container_name: eurekaserver-ms
@@ -34,6 +49,33 @@ services:
     networks:
       - wiremoney
 
+
+  gatewayserver:
+    image: jpelegrino/gatewayserver:1.0
+    container_name: gatewayserver-ms
+    ports:
+      - "8072:8072"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+      restart_policy:
+        condition: on-failure
+        delay: 120s
+        max_attempts: 3
+        window: 120s
+    depends_on:
+      - banktranx
+      - customers
+      - wiretransfer
+      - serverconfig
+      - eurekaserver
+    networks:
+      - wiremoney
+    environment:
+      CONFIG_HOST: configserver:http://serverconfig:8070/
+      EUREKA_HOST: http://eurekaserver:8071/eureka/
+
   banktranx:
     image: jpelegrino/bank:1.0
     container_name: bankservice
@@ -55,6 +97,7 @@ services:
       - customers
       - serverconfig
       - eurekaserver
+      - rabbit
     environment:
       DB_HOST: bankdb
       DB_PASS: admin
@@ -63,6 +106,7 @@ services:
       CONFIG_HOST: configserver:http://serverconfig:8070/
       EUREKA_HOST: http://eurekaserver:8071/eureka/
       SPRING_PROFILES_ACTIVE: prod
+      RABBIT_HOST: rabbit
 
 
 
@@ -93,6 +137,29 @@ services:
       CONFIG_HOST: configserver:http://serverconfig:8070/
       EUREKA_HOST: http://eurekaserver:8071/eureka/
       SPRING_PROFILES_ACTIVE: prod
+
+  messagesms:
+    image: jpelegrino/messages:1.0
+    container_name: messages-ms
+    ports:
+      - "9010:9010"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+      restart_policy:
+        condition: on-failure
+        delay: 60s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - wiremoney
+    depends_on:
+      - rabbit
+    environment:
+      EUREKA_HOST: http://eurekaserver:8071/eureka/
+      SPRING_PROFILES_ACTIVE: prod
+      RABBIT_HOST: rabbit
 
   wiretransfer:
     image: jpelegrino/wiretransfer:1.0
