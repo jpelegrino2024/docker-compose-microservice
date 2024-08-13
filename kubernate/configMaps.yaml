@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wiremoney-config
+data:
+  CONFIGSERVER_URL: 'configserver:http://configserver-service:8070/'
+  EURAKASERVER_URL: 'http://eurekaserver-service:8071/eureka/'
+  BANK_SERVICE_URL: 'http://bank-service:8093/transactions'
+  RABBIT_SERVICE: rabbitserver-service
+  SPRING_PROFILES_ACTIVE: prod
+  BANK_DB_SERVICE: bankdb-service
+  BANK_DB_DATABASE: bank-db
+  BANK_DB_PASSWORD: admin
+  CUSTOMER_DB_SERVICE: customerdb-service
+  CUSTOMER_DB_DATABASE: customer-db
+  CUSTOMER_DB_PASSWORD: admin

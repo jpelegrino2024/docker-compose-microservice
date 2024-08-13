@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bank-deployment
+  labels:
+    app: bank
+spec:
+  selector:
+    matchLabels:
+      app: bank
+  template:
+    metadata:
+      labels:
+        app: bank
+    spec:
+      containers:
+        - name: bankservice
+          image: jpelegrino/bank:1.0
+          ports:
+            - containerPort: 8093
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_DB_SERVICE
+                  name: wiremoney-config
+            - name: DB_PASS
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_DB_PASSWORD
+                  name: wiremoney-config
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_DB_DATABASE
+                  name: wiremoney-config
+
+            - name: CONFIG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: CONFIGSERVER_URL
+                  name: wiremoney-config
+
+            - name: EUREKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: EURAKASERVER_URL
+                  name: wiremoney-config
+
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  key: SPRING_PROFILES_ACTIVE
+                  name: wiremoney-config
+
+            - name: RABBIT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: RABBIT_SERVICE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bank-service
+  labels:
+    app: bank
+spec:
+  selector:
+    app: bank
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8093
+      targetPort: 8093

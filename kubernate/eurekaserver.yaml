@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eurekaserver-deployment
+  labels:
+    app: eurekaserver
+spec:
+  selector:
+    matchLabels:
+      app: eurekaserver
+  template:
+    metadata:
+      labels:
+        app: eurekaserver
+    spec:
+      containers:
+        - name: eurekaserver
+          image: jpelegrino/eurekaserver:1.0
+          ports:
+            - containerPort: 8071
+          env:
+            - name: CONFIG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: CONFIGSERVER_URL
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eurekaserver-service
+  labels:
+    app: eurekaserver
+spec:
+  selector:
+    app: eurekaserver
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8071
+      targetPort: 8071

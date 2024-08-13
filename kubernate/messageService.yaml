@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messagemq-deployment
+  labels:
+    app: messagemq
+spec:
+  selector:
+    matchLabels:
+      app: messagemq
+  template:
+    metadata:
+      labels:
+        app: messagemq
+    spec:
+      containers:
+        - name: messagemq
+          image: jpelegrino/messages:1.0
+          ports:
+            - containerPort: 9010
+          env:
+            - name: RABBIT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: RABBIT_SERVICE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messagemq-service
+  labels:
+    app: messagemq
+spec:
+  selector:
+    app: messagemq
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 9010
+      targetPort: 9010

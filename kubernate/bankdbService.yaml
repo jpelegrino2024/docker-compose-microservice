@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bankdb-deployment
+  labels:
+    app: bankdb
+spec:
+  selector:
+    matchLabels:
+      app: bankdb
+  template:
+    metadata:
+      labels:
+        app: bankdb
+    spec:
+      containers:
+        - name: bankdb
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_DB_PASSWORD
+                  name: wiremoney-config
+
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_DB_DATABASE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bankdb-service
+  labels:
+    app: bankdb
+spec:
+  selector:
+    app: bankdb
+  type: LoadBalancer
+  ports:
+    - port: 3306
+      targetPort: 3306

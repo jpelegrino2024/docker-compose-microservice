@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service-deployment
+  labels:
+    app: customerservice
+spec:
+  selector:
+    matchLabels:
+      app: customerservice
+  template:
+    metadata:
+      labels:
+        app: customerservice
+    spec:
+      containers:
+        - name: customerservice
+          image: jpelegrino/customers:1.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: wiremoney-config
+                  key: CUSTOMER_DB_SERVICE
+            - name: DB_PASS
+              valueFrom:
+                configMapKeyRef:
+                  key: CUSTOMER_DB_PASSWORD
+                  name: wiremoney-config
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: CUSTOMER_DB_DATABASE
+                  name: wiremoney-config
+            - name: CONFIG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: CONFIGSERVER_URL
+                  name: wiremoney-config
+            - name: EUREKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: EURAKASERVER_URL
+                  name: wiremoney-config
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  key: SPRING_PROFILES_ACTIVE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-service
+  labels:
+    app: customerservice
+spec:
+  selector:
+    app: customerservice
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

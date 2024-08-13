@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wiretransfer-deployment
+  labels:
+    app: wiretransfer
+spec:
+  selector:
+    matchLabels:
+      app: wiretransfer
+  template:
+    metadata:
+      labels:
+        app: wiretransfer
+    spec:
+      containers:
+        - name: wiretransfer
+          image: jpelegrino/wiretransfer:1.0
+          ports:
+            - containerPort: 8001
+          env:
+            - name: BANK_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: BANK_SERVICE_URL
+                  name: wiremoney-config
+
+            - name: CONFIG_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: CONFIGSERVER_URL
+                  name: wiremoney-config
+
+            - name: EUREKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: EURAKASERVER_URL
+                  name: wiremoney-config
+
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  key: SPRING_PROFILES_ACTIVE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wiretransfer-service
+  labels:
+    app: wiretransfer
+spec:
+  selector:
+    app: wiretransfer
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

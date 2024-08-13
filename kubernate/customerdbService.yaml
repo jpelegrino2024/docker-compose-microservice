@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customerdb-deployment
+  labels:
+    app: customerdb
+spec:
+  selector:
+    matchLabels:
+      app: customerdb
+  template:
+    metadata:
+      labels:
+        app: customerdb
+    spec:
+      containers:
+        - name: customerdb
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: CUSTOMER_DB_PASSWORD
+                  name: wiremoney-config
+
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: CUSTOMER_DB_DATABASE
+                  name: wiremoney-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customerdb-service
+  labels:
+    app: customerdb
+spec:
+  selector:
+    app: customerdb
+  type: LoadBalancer
+  ports:
+    - port: 3306
+      targetPort: 3306
